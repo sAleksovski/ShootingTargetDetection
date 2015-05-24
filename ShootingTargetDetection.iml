@@ -10,14 +10,13 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/opencv-2410.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/opencv-2411.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
-          <root url="jar://$MODULE_DIR$/lib/opencv-2410.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/opencv-2411.jar!/" />
         </SOURCES>
       </library>
     </orderEntry>
-    <orderEntry type="library" name="opencv-2411" level="project" />
   </component>
 </module>
