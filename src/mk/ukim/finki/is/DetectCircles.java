@@ -91,22 +91,25 @@ public class DetectCircles {
                 Circle c = new Circle(pt, radius);
 
                 if (dist(center, pt) < 10 && !alreadyFound(circlesList, c)) {
-                    Core.circle(src_grey, pt, radius, new Scalar(0, 255, 0), lineThickness);
-                    Core.circle(src_grey, pt, 3, new Scalar(100, 100, 255), lineThickness);
+                    /*Core.circle(src_grey, pt, radius, new Scalar(0, 255, 0), lineThickness);
+                    Core.circle(src_grey, pt, 3, new Scalar(100, 100, 255), lineThickness);*/
                     circlesList.add(c);
                 }
 
             }
 
+        Mat recolored = new Mat();
+        Imgproc.cvtColor(src_grey, recolored, Imgproc.COLOR_GRAY2RGB);
+
         double dist = findDistanceCircles(circlesList);
 
         Circle max = Collections.max(circlesList);
-        Core.circle(src_grey, center, 3, new Scalar(100, 100, 255), lineThickness);
+        Core.circle(recolored, center, 3, new Scalar(0, 0, 255), lineThickness);
         for (int i = 0; i < 10; i++) {
-            Core.circle(src_grey, center, max.radius - (i * (int) Math.round(dist)), new Scalar(94,206,165,255), lineThickness);
+            Core.circle(recolored, center, max.radius - (i * (int) Math.round(dist)), new Scalar(0, 255, 0), lineThickness);
         }
 
-        return src_grey;
+        return recolored;
     }
 
     /**
