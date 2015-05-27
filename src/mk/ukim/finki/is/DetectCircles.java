@@ -48,6 +48,9 @@ public class DetectCircles {
         return null;
     }
 
+    List<Circle> circlesList;
+    Point center;
+
     /**
      * Draws circle on given image
      * @param src Input image
@@ -64,14 +67,14 @@ public class DetectCircles {
         int iMaxRadius = 0;
         double accumulator = 200;
         int lineThickness = 3;
-        List<Circle> circlesList = new ArrayList<Circle>();
+        circlesList = new ArrayList<Circle>();
 
         Imgproc.HoughCircles(src_grey, circles, Imgproc.CV_HOUGH_GRADIENT,
                 1.0, 0.01, cannyUpperThreshold, accumulator,
                 iMinRadius, iMaxRadius);
 
         //Point center = detectCenter(src);
-        Point center = null;
+        center = null;
 
         if (circles.cols() > 0)
             for (int x = 0; x < circles.cols(); x++)
@@ -85,9 +88,9 @@ public class DetectCircles {
                 if (center == null)
                     center = pt;
 
-                System.out.print("Point: " + pt);
+//                System.out.print("Point: " + pt);
                 int radius = (int)Math.round(vCircle[2]);
-                System.out.println(" Radius: " + radius);
+//                System.out.println(" Radius: " + radius);
                 Circle c = new Circle(pt, radius);
 
                 if (dist(center, pt) < 10 && !alreadyFound(circlesList, c)) {
@@ -218,10 +221,10 @@ public class DetectCircles {
      * @param circles List of circles
      * @return Distance between circles
      */
-    private double findDistanceCircles(List<Circle> circles) {
+    public double findDistanceCircles(List<Circle> circles) {
         int maxRadius = Collections.max(circles).radius;
         double averageDist = 0;
-        System.out.println("Size: " + circles.size());
+//        System.out.println("Size: " + circles.size());
         for (int i = 0; i < circles.size(); i++) {
             if (circles.get(i).radius == maxRadius)
                 continue;
@@ -253,8 +256,13 @@ public class DetectCircles {
 
         Mat src = Highgui.imread("img/21.03.2015_Page_1.jpg");
 
-        if (src == null)
-            return;
+        if (Math.min(src.cols(), src.rows()) > 1000) {
+            double scale  = Math.min(src.cols(), src.rows()) / 1000.0;
+            long new_width = Math.round((src.cols() / scale));
+            long new_height = Math.round((src.rows() / scale));
+            System.out.printf("resize to: %d x %d\n", new_width, new_height);
+            Imgproc.resize(src, src, new Size(new_width, new_height));
+        }
 
         DetectCircles dc = new DetectCircles();
         /*Point center = dc.detectCenter(src);

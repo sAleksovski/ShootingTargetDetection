@@ -19,6 +19,8 @@ public class DetectHit {
 
     static int SHOT_SIDE_DIFFERENCE_THRESHOLD = 10; // maximum difference of the sides of a hit
 
+    static int BLACK_THRESHOLD = 128;
+
     public static void main(String[] args) {
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 
@@ -54,9 +56,14 @@ public class DetectHit {
         showResult(detectedHits);
     }
 
+    public static List<Hit> detect(Mat source) {
+        Mat greyscale = toBlackAndWhite(source);
+        Mat mask = generateMask(greyscale);
+        return detectHits(mask);
+    }
+
     public static Mat toBlackAndWhite(Mat in) {
         Mat out = in.clone();
-        int BLACK_THRESHOLD = 128;
         Imgproc.cvtColor(in, out, Imgproc.COLOR_RGB2GRAY);
         for (int i = 0; i < in.rows(); i++) {
             for (int j = 0; j < in.cols(); j++) {

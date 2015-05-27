@@ -6,10 +6,15 @@ public class Hit {
 
     Point center;
     int radius;
+    int points;
 
     public Hit(Point center, int radius) {
         this.center = center;
         this.radius = radius;
+    }
+
+    public void setPoints(int points) {
+        this.points = points;
     }
 
     public boolean intersect(Hit h) {
