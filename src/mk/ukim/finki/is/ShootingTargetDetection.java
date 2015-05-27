@@ -8,9 +8,6 @@ import java.io.File;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * Created by Stefan on 27/5/2015.
- */
 public class ShootingTargetDetection {
 
     static Scalar[] colors = new Scalar[]{
@@ -76,7 +73,9 @@ public class ShootingTargetDetection {
         }
 
         for (Hit h : hits) {
-            Core.circle(out, h.center, h.radius, colors[h.points-1], 3);
+            if (h.points > 0) {
+                Core.circle(out, h.center, h.radius, colors[h.points-1], 3);
+            }
         }
 
         Core.putText(out, String.valueOf(points), new Point(40, 100), Core.FONT_HERSHEY_PLAIN, 6, new Scalar(0, 0, 255), 3);
@@ -90,8 +89,10 @@ public class ShootingTargetDetection {
             double distanceFromCenter = dist(h.center, center);
             int circle = (int) (distanceFromCenter / distanceBetweenCircles);
             int p = 10 - circle;
-            h.setPoints(p);
-            points += p;
+            if (p > 0) {
+                h.setPoints(p);
+                points += p;
+            }
         }
 
         return points;

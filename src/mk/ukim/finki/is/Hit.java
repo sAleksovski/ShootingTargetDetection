@@ -11,6 +11,7 @@ public class Hit {
     public Hit(Point center, int radius) {
         this.center = center;
         this.radius = radius;
+        points = 0;
     }
 
     public void setPoints(int points) {
