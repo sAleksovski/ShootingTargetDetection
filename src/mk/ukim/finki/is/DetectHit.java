@@ -28,8 +28,15 @@ public class DetectHit {
 //        Mat source = Highgui.imread("img/21.04.2015-Blaze-Tofilovski_Page_09.jpg");
 //        Mat source = Highgui.imread("img/DSC_0202.JPG");
         Mat source = Highgui.imread("img/DSC_0279.JPG");
+//        Mat source = Highgui.imread("img/Trening 01.02.2014_Page_8.jpg");
 
-        Imgproc.resize(source, source, new Size(1000, 1000));
+        if (Math.min(source.cols(), source.rows()) > 1000) {
+            double scale  = Math.min(source.cols(), source.rows()) / 1000.0;
+            long new_width = Math.round((source.cols() / scale));
+            long new_height = Math.round((source.rows() / scale));
+            System.out.printf("resize to: %d x %d\n", new_width, new_height);
+            Imgproc.resize(source, source, new Size(new_width, new_height));
+        }
 
         Mat greyscale = toBlackAndWhite(source);
         Mat mask = generateMask(greyscale);
@@ -42,24 +49,27 @@ public class DetectHit {
         }
 
         Highgui.imwrite("img-out/mask.jpg", mask);
+        Highgui.imwrite("img-out/greyscale.jpg", greyscale);
 
         showResult(detectedHits);
     }
 
     public static Mat toBlackAndWhite(Mat in) {
-        in = in.clone();
-        Imgproc.cvtColor(in, in, Imgproc.COLOR_RGB2GRAY);
+        Mat out = in.clone();
+        int BLACK_THRESHOLD = 128;
+        Imgproc.cvtColor(in, out, Imgproc.COLOR_RGB2GRAY);
         for (int i = 0; i < in.rows(); i++) {
             for (int j = 0; j < in.cols(); j++) {
-                double d = in.get(i, j)[0];
-                if (d < 128) {
-                    in.put(i, j, 0);
+//                double d = in.get(i, j)[0];
+                double d = (in.get(i, j)[0] + in.get(i, j)[1] + in.get(i, j)[2]) / 3.0;
+                if (d < BLACK_THRESHOLD) {
+                    out.put(i, j, 0);
                 } else {
-                    in.put(i, j, 255);
+                    out.put(i, j, 255);
                 }
             }
         }
-        return in;
+        return out;
     }
 
     public static Mat generateMask(Mat greyscale) {
@@ -107,8 +117,8 @@ public class DetectHit {
 
     public static List<Hit> detectHits(Mat mask) {
         mask = mask.clone();
-        List<Hit> hits = new ArrayList<>();
-        List<Boundaries> refineBoundaries = new ArrayList<>();
+        List<Hit> hits = new ArrayList<Hit>();
+        List<Boundaries> refineBoundaries = new ArrayList<Boundaries>();
 
         for (int y = 1; y < mask.rows()-1; y++) {
             for (int x = 1; x < mask.cols()-1; x++) {
@@ -140,7 +150,7 @@ public class DetectHit {
             }
         }
 
-        List<Hit> r = new ArrayList<>();
+        List<Hit> r = new ArrayList<Hit>();
         r.addAll(hits);
 
         for (int i = 0; i < hits.size(); i++) {

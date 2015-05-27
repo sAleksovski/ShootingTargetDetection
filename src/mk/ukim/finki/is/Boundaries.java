@@ -2,9 +2,6 @@ package mk.ukim.finki.is;
 
 import org.opencv.core.Point;
 
-/**
- * Created by Stefan on 25/5/2015.
- */
 public class Boundaries {
 
     int minX;
