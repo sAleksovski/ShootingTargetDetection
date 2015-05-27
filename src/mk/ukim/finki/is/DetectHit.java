@@ -1,14 +1,10 @@
 package mk.ukim.finki.is;
 
-import org.opencv.core.*;
-import org.opencv.highgui.Highgui;
+import org.opencv.core.CvType;
+import org.opencv.core.Mat;
+import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
-import javax.imageio.ImageIO;
-import javax.swing.*;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,53 +17,23 @@ public class DetectHit {
 
     static int BLACK_THRESHOLD = 128;
 
-    public static void main(String[] args) {
-        System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+    Mat image;
 
-//        Mat source = Highgui.imread("img/21.03.2015_Page_1.jpg");
-//        Mat source = Highgui.imread("img/Baze 11.03.2015_Page_5.jpg");
-//        Mat source = Highgui.imread("img/21.04.2015-Blaze-Tofilovski_Page_01.jpg");
-//        Mat source = Highgui.imread("img/21.04.2015-Blaze-Tofilovski_Page_09.jpg");
-//        Mat source = Highgui.imread("img/DSC_0202.JPG");
-        Mat source = Highgui.imread("img/DSC_0279.JPG");
-//        Mat source = Highgui.imread("img/Trening 01.02.2014_Page_8.jpg");
-
-        if (Math.min(source.cols(), source.rows()) > 1000) {
-            double scale  = Math.min(source.cols(), source.rows()) / 1000.0;
-            long new_width = Math.round((source.cols() / scale));
-            long new_height = Math.round((source.rows() / scale));
-            System.out.printf("resize to: %d x %d\n", new_width, new_height);
-            Imgproc.resize(source, source, new Size(new_width, new_height));
-        }
-
-        Mat greyscale = toBlackAndWhite(source);
-        Mat mask = generateMask(greyscale);
-        List<Hit> hits = detectHits(mask);
-
-        Mat detectedHits = source.clone();
-
-        for (Hit h : hits) {
-            Core.circle(detectedHits, h.center, h.radius, new Scalar(0, 0, 255), 3);
-        }
-
-        Highgui.imwrite("img-out/mask.jpg", mask);
-        Highgui.imwrite("img-out/greyscale.jpg", greyscale);
-
-        showResult(detectedHits);
+    public DetectHit(Mat image) {
+        this.image = image.clone();
     }
 
-    public static List<Hit> detect(Mat source) {
-        Mat greyscale = toBlackAndWhite(source);
+    public List<Hit> detect() {
+        Mat greyscale = toBlackAndWhite(image);
         Mat mask = generateMask(greyscale);
         return detectHits(mask);
     }
 
-    public static Mat toBlackAndWhite(Mat in) {
+    private Mat toBlackAndWhite(Mat in) {
         Mat out = in.clone();
         Imgproc.cvtColor(in, out, Imgproc.COLOR_RGB2GRAY);
         for (int i = 0; i < in.rows(); i++) {
             for (int j = 0; j < in.cols(); j++) {
-//                double d = in.get(i, j)[0];
                 double d = (in.get(i, j)[0] + in.get(i, j)[1] + in.get(i, j)[2]) / 3.0;
                 if (d < BLACK_THRESHOLD) {
                     out.put(i, j, 0);
@@ -79,7 +45,7 @@ public class DetectHit {
         return out;
     }
 
-    public static Mat generateMask(Mat greyscale) {
+    private Mat generateMask(Mat greyscale) {
         Mat mask = new Mat(greyscale.rows(), greyscale.cols(), CvType.CV_32F);
         mask.setTo(new Scalar(255, 255, 255));
 
@@ -122,10 +88,10 @@ public class DetectHit {
         return mask;
     }
 
-    public static List<Hit> detectHits(Mat mask) {
+    private List<Hit> detectHits(Mat mask) {
         mask = mask.clone();
-        List<Hit> hits = new ArrayList<Hit>();
-        List<Boundaries> refineBoundaries = new ArrayList<Boundaries>();
+        List<Hit> hits = new ArrayList<>();
+        List<Boundaries> refineBoundaries = new ArrayList<>();
 
         for (int y = 1; y < mask.rows()-1; y++) {
             for (int x = 1; x < mask.cols()-1; x++) {
@@ -157,7 +123,7 @@ public class DetectHit {
             }
         }
 
-        List<Hit> r = new ArrayList<Hit>();
+        List<Hit> r = new ArrayList<>();
         r.addAll(hits);
 
         for (int i = 0; i < hits.size(); i++) {
@@ -175,7 +141,7 @@ public class DetectHit {
     private static int[] ffx = new int[]{0, +1, 0, -1};
     private static int[] ffy = new int[]{-1, 0, +1, 0};
 
-    private static void floodFill(Mat mask, int row, int col, Boundaries boundaries) {
+    private void floodFill(Mat mask, int row, int col, Boundaries boundaries) {
         boundaries.set(row, col);
 
         for (int i = 0; i < ffx.length; i++) {
@@ -187,39 +153,15 @@ public class DetectHit {
 
     }
 
-    private static boolean canMergeBoundaries(Boundaries b1, Boundaries b2) {
+    private boolean canMergeBoundaries(Boundaries b1, Boundaries b2) {
         Boundaries b3 = new Boundaries(b1.minY, b1.minX);
         b3.set(b1.maxY, b1.maxX);
         b3.set(b2.minY, b2.minX);
         b3.set(b2.maxY, b2.maxX);
 
-        if (b3.smallerSide() >= SHOT_DIAMETER_MIN_THRESHOLD
+        return b3.smallerSide() >= SHOT_DIAMETER_MIN_THRESHOLD
                 && b3.biggerSide() <= SHOT_DIAMETER_MAX_THRESHOLD
-                && b3.isHit(SHOT_SIDE_DIFFERENCE_THRESHOLD)) {
-            return true;
-        }
-
-        return false;
-    }
-
-    public static void showResult(Mat img) {
-        Imgproc.resize(img, img, new Size(500, 500));
-        MatOfByte matOfByte = new MatOfByte();
-        Highgui.imencode(".jpg", img, matOfByte);
-        byte[] byteArray = matOfByte.toArray();
-        BufferedImage bufImage;
-        try {
-            InputStream in = new ByteArrayInputStream(byteArray);
-            bufImage = ImageIO.read(in);
-            JFrame frame = new JFrame();
-            frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-            frame.getContentPane().add(new JLabel(new ImageIcon(bufImage)));
-            frame.pack();
-            frame.setLocationRelativeTo(null);
-            frame.setVisible(true);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+                && b3.isHit(SHOT_SIDE_DIFFERENCE_THRESHOLD);
     }
 
 }
