@@ -89,6 +89,14 @@ public class GUI extends JFrame implements ActionListener, ImageOpeningFinished 
 
     public static void main(String[] args) {
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+        try {
+            // Set System L&F
+            UIManager.setLookAndFeel(
+                    UIManager.getSystemLookAndFeelClassName());
+        }
+        catch (Exception e) {
+            // handle exception
+        }
         JFrame gui = new GUI();
         gui.setVisible(true);
     }

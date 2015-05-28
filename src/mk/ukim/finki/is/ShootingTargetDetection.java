@@ -87,7 +87,7 @@ public class ShootingTargetDetection {
 
         for (Hit h : hits) {
             double distanceFromCenter = dist(h.center, center);
-            int circle = (int) (distanceFromCenter / distanceBetweenCircles);
+            int circle = (int) Math.floor(distanceFromCenter / distanceBetweenCircles);
             int p = 10 - circle;
             if (p > 0) {
                 h.setPoints(p);
