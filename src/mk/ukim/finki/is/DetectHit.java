@@ -25,8 +25,19 @@ public class DetectHit {
 
     public List<Hit> detect() {
         Mat greyscale = toBlackAndWhite(image);
-        Mat mask = generateMask(greyscale);
+        double[][] matrix = convertToDoubleMatrix(greyscale);
+        Mat mask = generateMask(matrix);
         return detectHits(mask);
+    }
+
+    private double[][] convertToDoubleMatrix(Mat greyscale) {
+        double[][] matrix = new double[greyscale.rows()][greyscale.cols()];
+        for (int i = 0; i < greyscale.rows(); i++) {
+            for (int j = 0; j < greyscale.cols(); j++) {
+                matrix[i][j] = greyscale.get(i, j)[0];
+            }
+        }
+        return matrix;
     }
 
     private Mat toBlackAndWhite(Mat in) {
@@ -45,36 +56,36 @@ public class DetectHit {
         return out;
     }
 
-    private Mat generateMask(Mat greyscale) {
-        Mat mask = new Mat(greyscale.rows(), greyscale.cols(), CvType.CV_32F);
+    private Mat generateMask(double[][] greyscale) {
+        Mat mask = new Mat(greyscale.length, greyscale[0].length, CvType.CV_32F);
         mask.setTo(new Scalar(255, 255, 255));
 
-        for (int y = SHOT_DIAMETER_MAX_THRESHOLD; y < greyscale.rows() - SHOT_DIAMETER_MAX_THRESHOLD - 1; y++) {
-            for (int x = SHOT_DIAMETER_MAX_THRESHOLD; x < greyscale.cols() - SHOT_DIAMETER_MAX_THRESHOLD - 1; x++) {
+        for (int y = SHOT_DIAMETER_MAX_THRESHOLD; y < greyscale.length - SHOT_DIAMETER_MAX_THRESHOLD - 1; y++) {
+            for (int x = SHOT_DIAMETER_MAX_THRESHOLD; x < greyscale[0].length - SHOT_DIAMETER_MAX_THRESHOLD - 1; x++) {
 
                 int wy = 1;
                 for (int i = 1; i <= SHOT_DIAMETER_MAX_THRESHOLD; i++) {
-                    if (greyscale.get(y-i, x)[0] == greyscale.get(y, x)[0]) wy++;
+                    if (greyscale[y-i][x] == greyscale[y][x]) wy++;
                     else break;
                 }
 
                 for (int i = 1; i <= SHOT_DIAMETER_MAX_THRESHOLD ; i++) {
-                    if (greyscale.get(y+i, x)[0] == greyscale.get(y, x)[0]) wy++;
+                    if (greyscale[y+i][x] == greyscale[y][x]) wy++;
                     else break;
                 }
 
                 int wx = 1;
                 for (int i = 1; i <= SHOT_DIAMETER_MAX_THRESHOLD; i++) {
-                    if (greyscale.get(y, x-i)[0] == greyscale.get(y, x)[0]) wx++;
+                    if (greyscale[y][x-i] == greyscale[y][x]) wx++;
                     else break;
                 }
 
                 for (int i = 1; i <= SHOT_DIAMETER_MAX_THRESHOLD; i++) {
-                    if (greyscale.get(y, x+i)[0] == greyscale.get(y, x)[0]) wx++;
+                    if (greyscale[y][x+i] == greyscale[y][x]) wx++;
                     else break;
                 }
 
-                if (greyscale.get(y, x)[0] == 255.00) {
+                if (greyscale[y][x] == 255.00) {
                     if ( (wx>SHOT_DIAMETER_MIN_THRESHOLD) && (wy>SHOT_DIAMETER_MIN_THRESHOLD) ) {
                         if ((wx<SHOT_DIAMETER_MAX_THRESHOLD)&&(wy<SHOT_DIAMETER_MAX_THRESHOLD)) {
                             mask.put(y, x, 1);
