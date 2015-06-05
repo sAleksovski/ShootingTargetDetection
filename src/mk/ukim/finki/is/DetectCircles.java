@@ -113,7 +113,8 @@ public class DetectCircles {
                     diff = Math.abs(dist - approximate);
                 }
             }
-            return distanceCircles;
+            averageDist += distanceCircles;
+//            return distanceCircles;
         }
 
         return averageDist / (circles.size() - 1);

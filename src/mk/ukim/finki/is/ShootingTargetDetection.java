@@ -64,6 +64,14 @@ public class ShootingTargetDetection {
         return points;
     }
 
+    public int[] getPointsArray() {
+        int[] res = new int[hits.size()];
+        for (int i = 0; i < res.length; i++) {
+            res[i] = hits.get(i).points;
+        }
+        return res;
+    }
+
     private Mat generateImage() {
         Mat out = source.clone();
         Circle max = Collections.max(circles);
@@ -86,7 +94,8 @@ public class ShootingTargetDetection {
         int points = 0;
 
         for (Hit h : hits) {
-            double distanceFromCenter = dist(h.center, center);
+            double distanceFromCenter = dist(h.center, center) - h.radius;
+            System.out.println(h + " " + distanceFromCenter / distanceBetweenCircles);
             int circle = (int) Math.floor(distanceFromCenter / distanceBetweenCircles);
             int p = 10 - circle;
             if (p > 0) {

@@ -11,12 +11,14 @@ import org.opencv.imgproc.Imgproc;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
+
 
 public class GUI extends JFrame implements ActionListener, ImageOpeningFinished {
 
@@ -27,14 +29,14 @@ public class GUI extends JFrame implements ActionListener, ImageOpeningFinished 
     JMenuItem jMenuItemSave;
     JMenuItem jMenuItemExit;
 
-    JLabel lblImage;
+    JLabel lblImage, lblArrayPoints, lblPoints, lblArrayText;
     Mat outputImageFullResolution;
     boolean imageOpened;
 
     public GUI() {
         super("GUI");
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        setSize(500, 550);
+        setSize(700, 550);
         setLocationRelativeTo(null);
 
         jFileChooser = new JFileChooser();
@@ -80,9 +82,30 @@ public class GUI extends JFrame implements ActionListener, ImageOpeningFinished 
         jMenuBar.add(jMenu);
         setJMenuBar(jMenuBar);
 
+        BorderLayout borderLayout = new BorderLayout(10, 10);
+        setLayout(borderLayout);
+
         lblImage = new JLabel();
         lblImage.setHorizontalAlignment(SwingConstants.CENTER);
-        add(lblImage);
+        add(lblImage, BorderLayout.CENTER);
+
+
+        lblPoints = new JLabel();
+        lblPoints.setFont(new Font("Arial", Font.PLAIN, 14));
+        lblArrayPoints = new JLabel();
+        lblArrayPoints.setFont(new Font("Arial", Font.PLAIN, 14));
+        lblArrayText = new JLabel();
+        lblArrayText.setFont(new Font("Arial", Font.PLAIN, 14));
+        JPanel panelEast = new JPanel();
+        panelEast.setLayout(new BoxLayout(panelEast, BoxLayout.Y_AXIS));
+        panelEast.add(lblPoints);
+        panelEast.add(Box.createRigidArea(new Dimension(10,10)));
+        panelEast.add(lblArrayText);
+        panelEast.add(lblArrayPoints);
+
+        lblPoints.setHorizontalAlignment(JLabel.LEFT);
+        lblPoints.setVerticalAlignment(SwingConstants.TOP);
+        add(panelEast, BorderLayout.EAST);
 
         imageOpened = false;
     }
@@ -161,11 +184,22 @@ public class GUI extends JFrame implements ActionListener, ImageOpeningFinished 
             bufImage = ImageIO.read(in);
             lblImage.setText("");
             lblImage.setIcon(new ImageIcon(bufImage));
-            pack();
-            setLocationRelativeTo(null);
+            updateLabels(shootingTargetDetection);
+            /*pack();
+            setLocationRelativeTo(null);*/
             imageOpened = true;
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private void updateLabels(ShootingTargetDetection shootingTargetDetection) {
+        lblPoints.setText("Points: " + shootingTargetDetection.getPoints() + "");
+        lblArrayText.setText("Detected Shots: ");
+        String array = "";
+        for (Integer i : shootingTargetDetection.getPointsArray()) {
+            array += i + " ";
+        }
+        lblArrayPoints.setText(array);
     }
 }
